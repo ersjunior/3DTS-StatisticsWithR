@@ -1,0 +1,116 @@
+---
+title: "Média Recortada - Renda Presumida"
+author: "Eliézer Junior"
+date: "2023-05-18"
+output: html_document
+---
+
+# parametros globais
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#### Importando base de dados
+```{r dados}
+# importando a base de dados
+library(readr)
+cadastro <- read_csv("C:/Users/Eliezer Junior/Git/MBA/3DTS-StatisticsWithR/Desafios/cadastro.csv")
+```
+
+#### Verificando os tipos de variáveis
+```{r tipo}
+# verificando os tipos de variaveis
+str(cadastro)
+```
+
+#### Resumindo a base de dados
+```{r resumo}
+# medidas resumo 1
+summary(cadastro)
+```
+
+#### Alterando os tipos de variáveis (Qualitativas x Quantitativas)
+```{r alteracao dos campos}
+# mudar o formato da variavel quantitativo para qualitativo
+cadastro$NUM_CPF <- factor(cadastro$NUM_CPF)
+cadastro$CEP <- factor(cadastro$CEP)
+```
+
+#### Verificando os novos tipos de variáveis
+```{r tipo 2}
+# verificar o tipo de variavel
+str(cadastro)
+```
+
+#### Resumindo a nova tabela
+```{r resumo 2}
+# medidas resumo
+summary(cadastro)
+```
+
+```{r}
+attach(cadastro)
+
+media_renda <- mean(RENDA_PRESUMIDA)
+dp_renda <- sd(RENDA_PRESUMIDA)
+cv_renda <- dp_renda/media_renda
+
+```
+
+Comentário:
+O desvio padrão é 10 vezes o valor da média
+
+```{r gráfico1}
+#
+hist(RENDA_PRESUMIDA, xlab="Renda presumida(R$)",
+     ylab="Frequencia absoluta",
+     main="Histograma da renda presumida(R$)")
+```
+
+```{r gráfico2}
+boxplot(RENDA_PRESUMIDA)
+```
+
+```{r outlier}
+# Deteccao de outliers
+q1 <- quantile(RENDA_PRESUMIDA,0.25)
+q2 <- quantile(RENDA_PRESUMIDA,0.5)
+q3 <- quantile(RENDA_PRESUMIDA, 0.75)
+
+# interquartil
+IQR = q3-q1
+
+limite1 <- q3 + 3*IQR
+limite2 <- q3 + 1.5*IQR
+limite3 <- q1 - 1.5*IQR
+limite4 <- q1 - 3*IQR
+
+# criar a variavel outlier_renda
+outlier_renda <- ifelse(RENDA_PRESUMIDA>=limite1,"ponto extremo",
+                  ifelse(RENDA_PRESUMIDA>= limite2 & RENDA_PRESUMIDA < limite1,"outlier",
+                    ifelse(RENDA_PRESUMIDA>= limite3 & RENDA_PRESUMIDA< limite2,"não",
+                      ifelse(RENDA_PRESUMIDA > limite4 & RENDA_PRESUMIDA < limite3,"outlier", "ponto extremo"))))
+```
+
+```{r tabela1}
+# tabela de frequencia
+renda_semout <- cadastro[outlier_renda == "não",]
+
+media_recortada_renda <- mean(renda_semout$RENDA_PRESUMIDA)
+media_recortada_renda
+
+dp_renda_semout <- sd(renda_semout$RENDA_PRESUMIDA)
+dp_renda_semout
+
+cv_renda_semout <- dp_renda_semout/media_recortada_renda
+cv_renda_semout
+```
+
+```{r salvar}
+# salvar o arquivo Cadastro no formato R
+saveRDS(cadastro,file="C:/Users/Eliezer Junior/Git/MBA/3DTS-StatisticsWithR/Desafios/cadastro.R")
+
+# salvar o arquivo Cadastro no formato csv
+write.csv(cadastro,'C:/Users/Eliezer Junior/Git/MBA/3DTS-StatisticsWithR/Desafios/cadastro1.csv')
+```
+
