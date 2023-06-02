@@ -1,4 +1,5 @@
 #------------------------- Estatistica com R parte 5 -------------------------#
+# Testendo com git
 ### Importando as bibliotécas necessárias
 library(tidyverse)
 library(summarytools)

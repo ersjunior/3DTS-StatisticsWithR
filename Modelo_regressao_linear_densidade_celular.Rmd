@@ -1,0 +1,169 @@
+---
+title: "Modelo de Regressão Linear"
+author: "Eliézer Junior"
+date: "2023-06-01"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r}
+library(ggplot2)
+library(tidyverse)
+```
+
+
+```{r}
+# nao mostrar o numero na notacao cientifica (e+88888 ou e-88888)
+options(scipen = 999)
+```
+
+![Figura 1.](X:/ESTUDOS/00_Acadêmico/MBA/06_STATISTICS WITH R - 36h/Aula 6/trab_aula6/figura1_densidade_celular.png)
+
+```{r dados1}
+densidade <- c(4.4, 8.9, 13.5, 16.4, 19.7, 25.8, 35.9, 46.6, 53.2)
+ano <- c(1998:2006)
+tempo <- c(1:9)
+
+# data frame
+df <- cbind(ano,tempo,densidade)
+df <- as.data.frame(df)
+df
+```
+
+### Grafico de dispersão e ajuste da regressão linear
+```{r grafico1}
+# lm (Linear Model) e se (Standard Deviation = erro padrao)
+g1 <- ggplot(df, aes(x = ano,y = densidade)) +
+      geom_point() +
+      geom_smooth(method = lm, se=FALSE)
+g1
+```
+
+![Figura 2.](X:/ESTUDOS/00_Acadêmico/MBA/06_STATISTICS WITH R - 36h/Aula 6/trab_aula6/figura2_correlacao_Pearson.png)
+
+```{r corr1}
+# Correlacao entre a densidade e o tempo
+correlacao <- cor(df$ano, df$densidade)
+correlacao
+```
+
+![Figura 3](X:/ESTUDOS/00_Acadêmico/MBA/06_STATISTICS WITH R - 36h/Aula 6/trab_aula6/figura3_regressao_linear_simples.png)
+```{r regressao}
+# Encontrando o b0 e b1 utilizando RLS (Regressao Linear Simples)
+# lm = Linear Model -> Densidade = b0 + b1 * tempo
+modelo1 <- lm(df$densidade ~ df$tempo)
+summary(modelo1)
+
+```
+# Modelo ajustado
+# densidade = -5.2750 + 6.0417 * tempo
+# O aumento médio da densidade é 6.04% ao ano
+# Previsão da densidade para tempo = 10
+# densidade(10) = -5.2750 + 6.0417 * 10
+
+densidade10 <- -5.2750 + (6.0417 * 10)
+densidade10
+
+densidade11 <- -5.2750 + (6.0417 * 11)
+densidade11
+
+densidade12 <- -5.2750 + (6.0417 * 12)
+densidade12
+
+
+densidade18 <- -5.2750 + 6.0417 * 18
+densidade18
+
+```{r ajuste1}
+df$previsao <- -5.2750 + 6.0417 * df$tempo
+df$residuo <- df$densidade - df$previsao
+```
+
+```{r medidas1}
+summary(df$residuo)
+```
+
+```{r grafico2}
+plot(df$tempo, df$densidade, type="o", col="blue", pch="o", ylab="Densidade", xlab="Tempo", lty=1)
+points(df$tempo, df$previsao, col="red", pch="*")
+lines(df$tempo, df$previsao, col="red", lty=2)
+```
+
+![Figura 4](X:/ESTUDOS/00_Acadêmico/MBA/06_STATISTICS WITH R - 36h/Aula 6/trab_aula6/figura4_residuo_adequado.png)
+# O gráfico de residuo mostrou que: 
+# A realção entre a densidade e o tempo não é linear
+# Logo, o modelo ajustado não está adequado ao conjunto de dados
+
+```{r grafico_res}
+gres <- ggplot(df, aes(x=tempo, y=residuo)) +
+        geom_point()
+gres
+```
+![Figura 5](X:/ESTUDOS/00_Acadêmico/MBA/06_STATISTICS WITH R - 36h/Aula 6/trab_aula6/figura5_residuo_nao_adequado.png)
+```{r}
+
+```
+
+
+![Figura 6](X:/ESTUDOS/00_Acadêmico/MBA/06_STATISTICS WITH R - 36h/Aula 6/trab_aula6/figura6_relacao_linear.png)
+# Vamos transformar a relação não linear em linear
+```{r}
+df$lndensidade <- log(df$densidade)
+```
+
+```{r modelo2}
+modelo2 <- lm(df$lndensidade ~ df$tempo)
+summary(modelo2)
+```
+# Calcular o valor previsto do modelo
+# y = 1.5206 + 0.2891 * df$tempo
+```{r}
+df$previsto_ln <- exp(1.5206 + 0.2891 * df$tempo)
+```
+
+# Grafico da densidade e os valores previstos dos dois modelos
+```{r grafico3}
+plot(df$tempo, df$densidade, type="o", col="blue", pch="o", ylab="Densidade", xlab="Tempo", lty=1)
+points(df$tempo, df$previsao, col="red", pch="*")
+lines(df$tempo, df$previsao, col="red", lty=2)
+points(df$tempo, df$previsto_ln, col="green", pch="a")
+lines(df$tempo, df$previsto_ln, col="green", lty=2)
+```
+
+# Calculando com o modelo2
+# previsto_ln(10) = exp(1.5206 + 0.2891 * df$tempo)
+Densidade100 = exp(1.5206 + 0.2891 * 11)
+Densidade100
+
+# Conclusão: a previsão do modelo mostra que em menos de 
+# dois anos o Brasil teria atingido o 100%
+
+# Vamos testar com o modelo polinomial de ordem2
+# densidade = a+b1 * ano + b2 * ano^2
+```{r modelo3}
+modelo3 <- lm(df$densidade ~ df$tempo + I(df$tempo^2))
+summary(modelo3)
+```
+```{r previsto_polinomio}
+df$previsto_poli <- predict(modelo3)
+```
+
+# Grafico da densidade e os valores previstos dos três modelos
+```{r}
+plot(df$tempo, df$densidade, type="o", col="blue", pch="o", ylab="Densidade", xlab="Tempo", lty=1)
+points(df$tempo, df$previsao, col="red", pch="*")
+lines(df$tempo, df$previsao, col="red", lty=2)
+points(df$tempo, df$previsto_ln, col="green", pch="a")
+lines(df$tempo, df$previsto_ln, col="green", lty=2)
+points(df$tempo, df$previsto_poli, col="orange", pch="p")
+lines(df$tempo, df$previsto_poli, col="orange", lty=2)
+```
+# Fazendo a previsão da densidade usando o modelo polinomial
+# de ordem2. Quando o brasil teria 100%
+
+Densidade1000 = 4.5405 + 0.6878 * 18 + 0.5354 * 18 * 18
+Densidade1000
+
